@@ -1,0 +1,10 @@
+version: "3"
+services:
+    laravel-deploy:
+        container_name: laravel-deploy
+        image: laravel-deploy
+        build: .
+        ports:
+            - 8001:80
+        env_file:
+            - .env
