@@ -6,7 +6,7 @@ on:
       - master
 jobs:
   docker_build:
-    runs-on: dev-runner
+    runs-on: laravel-deploy
     name: Docker Image Build
     steps:
       - uses: actions/checkout@v2
@@ -16,7 +16,7 @@ jobs:
       - name: Build Docker image
         run: docker build -t lara-deploy/deploy:${{github.ref_name}} .
   deploy:
-    runs-on: dev-runner
+    runs-on: laravel-deploy
     name: Continuous Deployment
     needs: [docker_build]
     steps:
