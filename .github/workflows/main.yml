@@ -1,0 +1,42 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - master
+jobs:
+  docker_build:
+    runs-on: dev-runner
+    name: Docker Image Build
+    steps:
+      - uses: actions/checkout@v2
+      - name: "Create env file"
+        run: |
+          echo "${{ vars.DEV_ENV_FILE }}" > .env
+      - name: Build Docker image
+        run: docker build -t lara-deploy/deploy:${{github.ref_name}} .
+  deploy:
+    runs-on: dev-runner
+    name: Continuous Deployment
+    needs: [docker_build]
+    steps:
+      - name: Deploy Docker Image
+        run: |
+          if docker ps -a -f name=pentil | grep -q pentil; then
+            echo "Container exists, removing..."
+            docker rm -f pentil
+          else
+            echo "Container not found"
+          fi
+
+          docker run -d \
+            --name pentil \
+            --network laravel-net \
+            -p 8000:8000 \
+            -v /var/storage/lara-deploy:/var/www/html/storage/app \
+            --restart always \
+            lara-deploy/deploy:${{ github.ref_name }}
+
+          docker container prune --force
+          docker image prune --force
+
